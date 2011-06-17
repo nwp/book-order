@@ -13,8 +13,9 @@ app.get('/', function(request, response) {
 
 app.post('/services/v3/source_commits/:token', function(request, response) {
   var token = request.params.token;
+  console.log('Pivotal Tracker API Token: ' + token);
+  console.log('Payload: ' + request.body.payload);
   var payload = JSON.parse(request.body.payload);
-  
   for (i = 0; i < payload.commits.length; i++) {
   	try {
   	    var keys = [];
