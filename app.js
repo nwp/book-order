@@ -18,11 +18,12 @@ app.post('/services/v3/source_commits/:token', function(request, response) {
   var payload = JSON.parse(request.body.payload);
   for (i = 0; i < payload.commits.length; i++) {
   	try {
-  	    var keys = [];
-  	    for (key in payload.commits[i]) {
-  	      keys.push(key);
-  	    }
-  	    var item = payload.commits[i][keys[0]];
+  	    //var keys = [];
+  	    //for (key in payload.commits[i]) {
+  	    //  keys.push(key);
+  	    //}
+  	    //var item = payload.commits[i][keys[0]];
+            var item = payload.commits[i];
     	var message = item.message;
     	var url = item.url;
     	var id = item.id;
