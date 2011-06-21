@@ -49,7 +49,7 @@ app.post('/commits/new/:token', function(request, response) {
   response.send(200);
 });
 
-app.post('/story/new' function(request, response) {
+app.post('/stories/new' function(request, response) {
   console.log('Sender: ' + request.body.sender);
   console.log('Recipient: ' + request.body.recipient);
   console.log('Subject: ' + request.body.subject);
