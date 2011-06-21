@@ -11,7 +11,7 @@ app.get('/', function(request, response) {
   response.send('<html><head><title>Welcome to the PT-Beanstalk Proxy</title></head><body><h1>Welcome to the Pivotal Tracker-Beanstalk Web Hook Proxy!</h1><p>Beanstalk does not offer a build-in Pivotal Tracker integration and Pivotal Tracker doesn\'t natively understand and parse Beanstalk JSON payloads. This proxy, therefore, bridges this gap by examining the standard Beanstalk JSON payload, generating the appropriate Pivotal Tracker XML, and posting it to the generic Pivotal Tracker commit hook URL (http://www.pivotaltracker.com/services/v3/source_commits).</p></body></html>');
 });
 
-app.post('/services/v3/source_commits/:token', function(request, response) {
+app.post('/commits/new/:token', function(request, response) {
   var token = request.params.token;
   console.log('Pivotal Tracker API Token: ' + token);
   console.log('Payload: ' + request.body.payload);
@@ -47,6 +47,15 @@ app.post('/services/v3/source_commits/:token', function(request, response) {
 	}
   }
   response.send(200);
+});
+
+app.post('/story/new' function(request, response) {
+  console.log('Sender: ' + request.body.sender);
+  console.log('Recipient: ' + request.body.recipient);
+  console.log('Subject: ' + request.body.subject);
+  console.log('Body: ' + request.body['body-plain']);
+  console.log('Attachments: ' + request.body['attachment-count']);
+  resopnse.send(200);
 });
 
 var port = process.env.PORT || 3000;
