@@ -18,16 +18,11 @@ app.post('/services/v3/source_commits/:token', function(request, response) {
   var payload = JSON.parse(request.body.payload);
   for (i = 0; i < payload.commits.length; i++) {
   	try {
-  	    //var keys = [];
-  	    //for (key in payload.commits[i]) {
-  	    //  keys.push(key);
-  	    //}
-  	    //var item = payload.commits[i][keys[0]];
-            var item = payload.commits[i];
+        var item = payload.commits[i];
     	var message = item.message;
     	var url = item.url;
     	var id = item.id;
-    	var author = item.author.email;
+    	var author = item.author.name;
     	var xml = '<source_commit><message>' + message + '</message><author>' + author + '</author><commit_id>' + id + '</commit_id><url>' + url + '</url></source_commit>';
     	console.log('Posting the following to Pivotal Tracker: ' + xml);
     	
