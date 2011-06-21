@@ -62,7 +62,7 @@ app.post('/projects/:project/stories/new/:token', function(request, response) {
   console.log('Body: ' + body);
   console.log('Attachments: ' + request.body['attachment-count']);
   try {
-    var xml = '<story><story_type>feature</story_type><name>' + subject + '</name><requested_by>Nathan Phelps</requested_by><labels>new</labels><description>' + body + '</description></story>';
+    var xml = '<story><story_type>feature</story_type><name>' + subject + '</name><requested_by>nathan@vitals.com</requested_by><labels>new</labels><description>' + body + '</description></story>';
     console.log('Posting the following to Pivotal Tracker: ' + xml);
     
     var req = http.request({ host: 'www.pivotaltracker.com', port: 80, method: 'POST', path: '/services/v3/projects/' + project + '/stories', headers: {'X-TrackerToken' : token, 'Content-Type' : 'application/xml', 'Content-Length' : xml.length} }, function(res) {
