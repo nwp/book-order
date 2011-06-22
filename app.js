@@ -50,14 +50,15 @@ app.post('/commits/new/:token', function(request, response) {
 });
 
 app.post('/projects/:project/stories/new/:token', function(request, response) {
+  console.log('Full Body: ' + request.body);
   var project = request.params.project;
   var token = request.params.token;
-  //var sender = request.body.sender;
+  var sender = request.body.sender;
   var from = request.body.from;
   var subject = request.body.subject;
   var body = request.body['body-plain'];
   
-  //console.log('Sender: ' + sender);
+  console.log('Sender: ' + sender);
   console.log('From: ' + from);
   console.log('Recipient: ' + request.body.recipient);
   console.log('Subject: ' + subject);
