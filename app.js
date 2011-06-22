@@ -52,20 +52,20 @@ app.post('/commits/new/:token', function(request, response) {
 app.post('/projects/:project/stories/new/:token', function(request, response) {
   var project = request.params.project;
   var token = request.params.token;
-  var sender = request.body.sender;
+  //var sender = request.body.sender;
   var from = request.body.from;
   var subject = request.body.subject;
   var body = request.body['body-plain'];
   
-  console.log('Sender: ' + sender);
+  //console.log('Sender: ' + sender);
   console.log('From: ' + from);
   console.log('Recipient: ' + request.body.recipient);
   console.log('Subject: ' + subject);
   console.log('Body: ' + body);
   console.log('Attachments: ' + request.body['attachment-count']);
   try {
-    var xml = '<story><story_type>feature</story_type><name>' + subject + '</name><requested_by>' + from.replace(/\s*<.*>/, '') + '</requested_by><labels>new</labels><description>' + body + '</description></story>';
-    console.log('Posting the following to Pivotal Tracker: ' + xml);
+    var storyXml = '<story><story_type>feature</story_type><name>' + subject + '</name><requested_by>' + from.replace(/\s*<.*>/, '') + '</requested_by><labels>new</labels><description>' + body + '</description></story>';
+    console.log('Posting the following to Pivotal Tracker: ' + storyXml);
     
     var req = http.request({ host: 'www.pivotaltracker.com', port: 80, method: 'POST', path: '/services/v3/projects/' + project + '/stories', headers: {'X-TrackerToken' : token, 'Content-Type' : 'application/xml', 'Content-Length' : xml.length} }, function(res) {
       console.log('PT Response status: ' + res.statusCode);
@@ -80,7 +80,7 @@ app.post('/projects/:project/stories/new/:token', function(request, response) {
       console.log('An error was encountered: ' + e.message);
     });
 	
-    req.write(xml);
+    req.write(storyXml);
     req.end();
   }
   catch (exception) {
