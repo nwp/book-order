@@ -70,7 +70,7 @@ app.post('/projects/:project/stories/new/:token', function(request, response) {
       var storyXml = '<story><story_type>feature</story_type><name>' + subject + '</name><requested_by>' + from.replace(/\s*<.*>/, '') + '</requested_by><labels>new</labels><description>' + body + '</description></story>';
       console.log('Posting the following to Pivotal Tracker: ' + storyXml);
     
-      var req = http.request({ host: 'www.pivotaltracker.com', port: 80, method: 'POST', path: '/services/v3/projects/' + project + '/stories', headers: {'X-TrackerToken' : token, 'Content-Type' : 'application/xml', 'Content-Length' : xml.length} }, function(res) {
+      var req = http.request({ host: 'www.pivotaltracker.com', port: 80, method: 'POST', path: '/services/v3/projects/' + project + '/stories', headers: {'X-TrackerToken' : token, 'Content-Type' : 'application/xml', 'Content-Length' : storyXml.length} }, function(res) {
           console.log('PT Response status: ' + res.statusCode);
           console.log('PT Response headers: ' + JSON.stringify(res.headers));
           res.setEncoding('utf8');
