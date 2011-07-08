@@ -2,8 +2,10 @@
 var sys  = require('sys');
 var http = require('http');
 var express = require('express');
+var multiparser = require('./multiparser')
 
 var app = express.createServer(express.logger());
+app.use(multiparser());
 app.use(express.bodyParser());
 
 app.get('/', function(request, response) {
@@ -52,49 +54,41 @@ app.post('/commits/new/:token', function(request, response) {
 app.post('/projects/:project/stories/new/:token', function(request, response) {
   var project = request.params.project;
   var token = request.params.token;
+  var sender = request.body.sender;
+  var from = request.body.from;
+  var subject = request.body.subject;
+  var body = request.body['body-plain'];
   
-  if (request.is('*/x-www-form-urlencoded')) {
-  
-    var sender = request.body.sender;
-    var from = request.body.from;
-    var subject = request.body.subject;
-    var body = request.body['body-plain'];
-  
-    console.log('Sender: ' + sender);
-    console.log('From: ' + from);
-    console.log('Recipient: ' + request.body.recipient);
-    console.log('Subject: ' + subject);
-    console.log('Body: ' + body);
-    console.log('Attachments: ' + request.body['attachment-count']);
-    try {
-      var storyXml = '<story><story_type>feature</story_type><name>' + subject + '</name><requested_by>' + from.replace(/\s*<.*>/, '') + '</requested_by><labels>new</labels><description>' + body + '</description></story>';
-      console.log('Posting the following to Pivotal Tracker: ' + storyXml);
+  console.log('Sender: ' + sender);
+  console.log('From: ' + from);
+  console.log('Recipient: ' + request.body.recipient);
+  console.log('Subject: ' + subject);
+  console.log('Body: ' + body);
+  console.log('Attachments: ' + request.body['attachment-count']);
+  try {
+    var storyXml = '<story><story_type>feature</story_type><name>' + subject + '</name><requested_by>' + from.replace(/\s*<.*>/, '') + '</requested_by><labels>new</labels><description>' + body + '</description></story>';
+    console.log('Posting the following to Pivotal Tracker: ' + storyXml);
     
-      var req = http.request({ host: 'www.pivotaltracker.com', port: 80, method: 'POST', path: '/services/v3/projects/' + project + '/stories', headers: {'X-TrackerToken' : token, 'Content-Type' : 'application/xml', 'Content-Length' : storyXml.length} }, function(res) {
-          console.log('PT Response status: ' + res.statusCode);
-          console.log('PT Response headers: ' + JSON.stringify(res.headers));
-          res.setEncoding('utf8');
-          res.on('data', function(chunk) {
-            console.log('PT Response body: ' + chunk);
-          });
+    var req = http.request({ host: 'www.pivotaltracker.com', port: 80, method: 'POST', path: '/services/v3/projects/' + project + '/stories', headers: {'X-TrackerToken' : token, 'Content-Type' : 'application/xml', 'Content-Length' : storyXml.length} }, function(res) {
+      console.log('PT Response status: ' + res.statusCode);
+      console.log('PT Response headers: ' + JSON.stringify(res.headers));
+      res.setEncoding('utf8');
+      res.on('data', function(chunk) {
+        console.log('PT Response body: ' + chunk);
       });
-      
-      req.on('error', function(e) {
-          console.log('An error was encountered: ' + e.message);
-      });
-  
-      req.write(storyXml);
-      req.end();
-    }
-    catch (exception) {
-      console.log(sys.inspect(exception));
-    }
-    response.send(200);
+    });
+    
+    req.on('error', function(e) {
+      console.log('An error was encountered: ' + e.message);
+    });
+
+    req.write(storyXml);
+    req.end();
   }
-  else {
-    console.log('Must be multipart');
-    response.send(200);
+  catch (exception) {
+    console.log(sys.inspect(exception));
   }
+  response.send(200);
 });
 
 var port = process.env.PORT || 3000;
