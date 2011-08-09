@@ -1,5 +1,6 @@
 
 var sys  = require('sys');
+var fs = require('fs');
 var http = require('http');
 var express = require('express');
 var multiparser = require('./multiparser')
@@ -57,14 +58,16 @@ app.post('/projects/:project/stories/new/:token', function(request, response) {
   var sender = request.body.sender;
   var from = request.body.from;
   var subject = request.body.subject;
+  var recip = request.body.recipient
   var body = request.body['body-plain'];
+  var attCount = request.body['attachment-count'];
   
   console.log('Sender: ' + sender);
   console.log('From: ' + from);
-  console.log('Recipient: ' + request.body.recipient);
+  console.log('Recipient: ' + recip);
   console.log('Subject: ' + subject);
   console.log('Body: ' + body);
-  console.log('Attachments: ' + request.body['attachment-count']);
+  console.log('Attachments: ' + attCount);
   try {
     var storyXml = '<story><story_type>feature</story_type><name>' + subject + '</name><requested_by>' + from.replace(/\s*<.*>/, '') + '</requested_by><labels>new</labels><description>' + body + '</description></story>';
     console.log('Posting the following to Pivotal Tracker: ' + storyXml);
@@ -73,8 +76,60 @@ app.post('/projects/:project/stories/new/:token', function(request, response) {
       console.log('PT Response status: ' + res.statusCode);
       console.log('PT Response headers: ' + JSON.stringify(res.headers));
       res.setEncoding('utf8');
+      var respBody = '';
       res.on('data', function(chunk) {
-        console.log('PT Response body: ' + chunk);
+        respBody += chunk;
+      });
+      res.on('end', function() {
+        console.log('PT Response body: ' + respBody);
+        var storyId = respBody.match(/<id.*?>(\d+)<\/id>/m)[1];
+        console.log('PT Story ID: ' + storyId);
+
+        // one api post per attachment
+        for(var i=0; i<parseInt(attCount); i++) {
+          var file = request.body['attachment-' + (i+1)];
+
+          (function(file) {
+            fs.readFile(file.path, null, function(err, data) {
+              if(err) throw err;
+
+              var boundary = Math.random();
+
+              var headData = "--" + boundary + "\r\n" +
+                             "Content-Disposition: form-data; name=\"Filedata\"; filename=\"" + file.filename + "\"\r\n" +
+                             "Content-Type: " + file.mime + "\r\n\r\n";
+              var tailData = "\r\n--" + boundary + "--";
+
+              var attReq = http.request({
+                host: 'www.pivotaltracker.com',
+                port: 80,
+                method: 'POST',
+                path: '/services/v3/projects/' + project + '/stories/' + storyId + '/attachments',
+                headers: {
+                  'X-TrackerToken': token,
+                  'Content-Type': 'multipart/form-data; boundary=' + boundary,
+                  'Content-Length': headData.length + data.length + tailData.length
+                }
+              }, function(res) {
+                res.setEncoding('utf8');
+                var respBody = '';
+                res.on('data', function(chunk) { respBody += chunk; });
+                res.on('end', function() {
+                  console.log('PT Attachment Response body: ' + respBody);
+                });
+              });
+
+              attReq.on('error', function(e) {
+                console.log('An error was encountered: ' + e.message);
+              });
+
+              attReq.write(new Buffer(headData));
+              attReq.write(data);
+              attReq.write(new Buffer(tailData));
+              attReq.end();
+            });
+          })(file);
+        }
       });
     });
     
