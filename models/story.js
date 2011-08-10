@@ -4,6 +4,8 @@ var Backbone   = require('backbone'),
     http       = require('http'),
     fs         = require('fs');
 
+var ALWAYS_ADD_LABELS = ['new'];
+
 // borrowed from Prototype.js
 function escapeHTML(html) {
   return html.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -18,10 +20,25 @@ var Story = module.exports = Backbone.Model.extend({
   // from
   // subject
   // body
+  // labels - auto extracted from subject if empty
   // attachments
   
-  initialize: function() {
+  initialize: function(attributes) {
+    this.setLabelsFromSubject();
     _.bindAll(this, 'saveCallback', 'createAttachments', 'createAttachmentFromFile');
+  },
+
+  setLabelsFromSubject: function() {
+    if(this.get('labels')) return;
+    var labels = [];
+    var re = /\[[^\]]+\]/g;
+    var match;
+    while(match = re.exec(this.get('subject'))) {
+      labels = labels.concat(match[0].replace(/\[|\]/g, '').split(/\s*,\s*/));
+    }
+    labels = labels.concat(ALWAYS_ADD_LABELS);
+    var subject = new String(this.get('subject')).replace(re, '').replace(/^\s+|\s+$/, '');
+    this.set({labels: labels, subject: subject});
   },
   
   fromName: function() {
@@ -31,7 +48,8 @@ var Story = module.exports = Backbone.Model.extend({
   toXml: function() {
     return '<story><story_type>feature</story_type><name>' + escapeHTML(this.get('subject')) + '</name>' +
            '<requested_by>' + escapeHTML(this.fromName()) + '</requested_by>' +
-           '<labels>new</labels><description>' + escapeHTML(this.get('body')) + '</description></story>';
+           '<labels>' + escapeHTML(this.get('labels').join(', ')) + '</labels>' +
+           '<description>' + escapeHTML(this.get('body')) + '</description></story>';
   },
 
   save: function() {

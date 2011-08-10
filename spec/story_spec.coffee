@@ -3,6 +3,38 @@ http  = require('http')
 
 describe Story, ->
 
+  describe "setLabelsFromSubject", ->
+    it "extracts individual labels in [foo] [bar] format", ->
+      story = new Story
+        subject: 'A Feature [foo] [bar]'
+      story.setLabelsFromSubject()
+      expect(story.get('labels')).toEqual(['foo', 'bar', 'new'])
+
+    it "extracts individual labels in [foo, bar] format", ->
+      story = new Story
+        subject: 'A Feature [foo, bar]'
+      story.setLabelsFromSubject()
+      expect(story.get('labels')).toEqual(['foo', 'bar', 'new'])
+
+    it "extracts individual labels in [foo, bar] [baz] format", ->
+      story = new Story
+        subject: 'A Feature [foo, bar] [baz]'
+      story.setLabelsFromSubject()
+      expect(story.get('labels')).toEqual(['foo', 'bar', 'baz', 'new'])
+
+    it "does not change labels if already set", ->
+      story = new Story
+        labels: ['foo']
+        subject: 'A Feature [bar]'
+      story.setLabelsFromSubject()
+      expect(story.get('labels')).toEqual(['foo'])
+
+    it "removes specified labels from the subject", ->
+      story = new Story
+        subject: 'A Feature [foo]'
+      story.setLabelsFromSubject()
+      expect(story.get('subject')).toEqual('A Feature')
+
   describe "fromName", ->
     it "returns the name without the email address", ->
       story = new Story
