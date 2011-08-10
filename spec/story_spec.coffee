@@ -3,6 +3,19 @@ http  = require('http')
 
 describe Story, ->
 
+  describe "setTypeFromSubject", ->
+    it "defaults to 'feature'", ->
+      story = new Story
+        subject: 'A Feature'
+      story.setTypeFromSubject()
+      expect(story.get('type')).toEqual('feature');
+
+    it "sets 'bug' if inferred", ->
+      story = new Story
+        subject: 'This is a Bug'
+      story.setTypeFromSubject()
+      expect(story.get('type')).toEqual('bug');
+
   describe "setLabelsFromSubject", ->
     it "extracts individual labels in [foo] [bar] format", ->
       story = new Story
@@ -54,7 +67,8 @@ describe Story, ->
     it "returns the story xml", ->
       xml = story.toXml()
       expect(xml).toEqual(
-        '<story><story_type>feature</story_type><name>Test</name>' +
+        '<story><name>Test</name>' +
+        '<story_type>feature</story_type>' +
         '<requested_by>John Doe</requested_by>' +
         '<labels>new</labels><description>test body</description></story>'
       )

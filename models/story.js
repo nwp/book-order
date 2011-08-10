@@ -5,6 +5,7 @@ var Backbone   = require('backbone'),
     fs         = require('fs');
 
 var ALWAYS_ADD_LABELS = ['new'];
+var DEFAULT_TYPE      = 'feature'
 
 // borrowed from Prototype.js
 function escapeHTML(html) {
@@ -20,12 +21,22 @@ var Story = module.exports = Backbone.Model.extend({
   // from
   // subject
   // body
+  // type - inferred from subject
   // labels - auto extracted from subject if empty
   // attachments
   
   initialize: function(attributes) {
+    this.setTypeFromSubject();
     this.setLabelsFromSubject();
     _.bindAll(this, 'saveCallback', 'createAttachments', 'createAttachmentFromFile');
+  },
+
+  setTypeFromSubject: function() {
+    if(new String(this.get('subject')).match(/bug/i)) {
+      this.set({type: 'bug'});
+    } else {
+      this.set({type: DEFAULT_TYPE});
+    }
   },
 
   setLabelsFromSubject: function() {
@@ -46,7 +57,8 @@ var Story = module.exports = Backbone.Model.extend({
   },
   
   toXml: function() {
-    return '<story><story_type>feature</story_type><name>' + escapeHTML(this.get('subject')) + '</name>' +
+    return '<story><name>' + escapeHTML(this.get('subject')) + '</name>' +
+           '<story_type>' + escapeHTML(this.get('type')) + '</story_type>' +
            '<requested_by>' + escapeHTML(this.fromName()) + '</requested_by>' +
            '<labels>' + escapeHTML(this.get('labels').join(', ')) + '</labels>' +
            '<description>' + escapeHTML(this.get('body')) + '</description></story>';
