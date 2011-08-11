@@ -31,8 +31,9 @@ Now, you can send email to you Mailgun routed email address, and new stories wil
 
 ## Setup
 
-If you want bug notifications, be sure to set the following environment variables:
+If you want notifications, be sure to set the following environment variables:
 
+    STORY_NOTIFICATION_FROM
     BUG_NOTIFICATION_TO
     BUG_NOTIFICATION_FROM
     SMTP_HOST

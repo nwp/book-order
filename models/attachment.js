@@ -44,7 +44,9 @@ var Attachment = module.exports = Backbone.Model.extend({
       res.on('data', function(chunk) { body += chunk; });
       res.on('end', _.bind(function() {
         // TODO not sure what to check for here
-        if(!body.match(/<status>Pending<\/status>/)) {
+        if(body.match(/<status>Pending<\/status>/)) {
+          this.trigger('done');
+        } else {
           this.trigger('error', 'Attachment not saved:' + body);
         }
       }, this));

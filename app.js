@@ -33,6 +33,7 @@ app.post('/projects/:project/stories/new/:token', function(request, response) {
       body:        request.body['stripped-text'],
       attachments: attachments
     });
+
     story.bind('error', function(err) {
       console.log(err);
       if(process.env.BUG_NOTIFICATION_TO) {
@@ -52,6 +53,19 @@ app.post('/projects/:project/stories/new/:token', function(request, response) {
         notification.send();
       }
     });
+
+    if(process.env.STORY_NOTIFICATION_FROM) {
+      story.bind('done', function(url) {
+        var notification = new Notification({
+          subject:     'PT Story Created',
+          body:        "Your story has been created in Pivotal Tracker. You can see it here:\n\n" + url,
+          from:        process.env.STORY_NOTIFICATION_FROM,
+          to:          story.get('from')
+        });
+        notification.send();
+      });
+    }
+
     story.save();
   }
   catch (exception) {

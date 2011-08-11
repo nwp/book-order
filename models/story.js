@@ -96,8 +96,13 @@ var Story = module.exports = Backbone.Model.extend({
     res.on('end', _.bind(function() {
       try {
         var storyId = body.match(/<id.*?>(\d+)<\/id>/m)[1];
+        var storyUrl = body.match(/<url>([^<]+)<\/url>/m)[1];
         this.set({id: storyId});
-        this.createAttachments();
+        if(this.get('attachments').length > 0) {
+          this.createAttachments(_.bind(this.trigger, this, 'done', storyUrl));
+        } else {
+          this.trigger('done', storyUrl)
+        }
       } catch(e) {
         console.log('PT Response Body: ' + body);
         this.trigger('error', new String(e));
@@ -105,16 +110,20 @@ var Story = module.exports = Backbone.Model.extend({
     }, this));
   },
 
-  createAttachments: function() {
+  createAttachments: function(cb) {
+    var count = this.get('attachments').length;
     _.each(this.get('attachments'), function(file) {
       fs.readFile(file.path, null, _.bind(function(err, data) {
         if(err) this.trigger('error', err);
-        this.createAttachmentFromFile(file, data);
+        this.createAttachmentFromFile(file, data, _.bind(function() {
+          count--;
+          if(count == 0) cb();
+        }, this));
       }, this));
     }, this)
   },
 
-  createAttachmentFromFile: function(file, data) {
+  createAttachmentFromFile: function(file, data, cb) {
     var attachment = new Attachment({
       projectId: this.get('projectId'),
       storyId:   this.get('id'),
@@ -123,6 +132,7 @@ var Story = module.exports = Backbone.Model.extend({
       data:      data
     });
     attachment.bind('error', _.bind(this.trigger, this, 'error'));
+    attachment.bind('done', cb);
     attachment.save();
   }
 });
