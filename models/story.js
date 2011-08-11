@@ -9,7 +9,7 @@ var DEFAULT_TYPE      = 'feature'
 
 // borrowed from Prototype.js
 function escapeHTML(html) {
-  return html.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  return new String(html).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
 var Story = module.exports = Backbone.Model.extend({
@@ -53,7 +53,7 @@ var Story = module.exports = Backbone.Model.extend({
   },
   
   fromName: function() {
-    return this.get('from').replace(/\s*<.*>/, '');
+    return new String(this.get('from')).replace(/\s*<.*>/, '');
   },
   
   toXml: function() {
@@ -79,9 +79,7 @@ var Story = module.exports = Backbone.Model.extend({
       }
     }, this.saveCallback);
     
-    req.on('error', function(e) {
-      throw(e.message)
-    });
+    req.on('error', _.bind(this.trigger, this, 'error'));
 
     req.write(storyXml);
     req.end();
@@ -96,16 +94,21 @@ var Story = module.exports = Backbone.Model.extend({
     });
 
     res.on('end', _.bind(function() {
-      var storyId = body.match(/<id.*?>(\d+)<\/id>/m)[1];
-      this.set({id: storyId});
-      this.createAttachments();
+      try {
+        var storyId = body.match(/<id.*?>(\d+)<\/id>/m)[1];
+        this.set({id: storyId});
+        this.createAttachments();
+      } catch(e) {
+        console.log('PT Response Body: ' + body);
+        this.trigger('error', new String(e));
+      }
     }, this));
   },
 
   createAttachments: function() {
     _.each(this.get('attachments'), function(file) {
       fs.readFile(file.path, null, _.bind(function(err, data) {
-        if(err) throw err;
+        if(err) this.trigger('error', err);
         this.createAttachmentFromFile(file, data);
       }, this));
     }, this)
@@ -119,6 +122,7 @@ var Story = module.exports = Backbone.Model.extend({
       file:      file,
       data:      data
     });
+    attachment.bind('error', _.bind(this.trigger, this, 'error'));
     attachment.save();
   }
 });

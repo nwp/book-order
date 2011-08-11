@@ -50,9 +50,7 @@ var Attachment = module.exports = Backbone.Model.extend({
       });
     });
 
-    req.on('error', function(e) {
-      throw 'An error was encountered: ' + e.message;
-    });
+    req.on('error', _.bind(this.trigger, this, 'error'));
 
     req.write(headData);
     req.write(this.get('data'));
