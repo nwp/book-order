@@ -28,7 +28,7 @@ app.use(express.bodyParser());
 var README = markdown(fs.readFileSync('./README.md', 'utf8'), true);
 
 app.get('/', function(request, response) {
-  response.send('<html><head><title>Email-PT Proxy</title></head><body>' + README + '</body></html>');
+  response.send('<html><head><title>Book Order</title></head><body>' + README + '</body></html>');
 });
 
 app.post('/projects/:project/stories/new/:token', function(request, response) {
