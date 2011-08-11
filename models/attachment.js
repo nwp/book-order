@@ -38,17 +38,17 @@ var Attachment = module.exports = Backbone.Model.extend({
         'Content-Type':   'multipart/form-data; boundary=' + boundary,
         'Content-Length': headData.length + this.get('data').length + tailData.length
       }
-    }, function(res) {
+    }, _.bind(function(res) {
       res.setEncoding('utf8');
       var body = '';
       res.on('data', function(chunk) { body += chunk; });
-      res.on('end', function() {
+      res.on('end', _.bind(function() {
         // TODO not sure what to check for here
         if(!body.match(/<status>Pending<\/status>/)) {
-          throw 'Attachment not saved:' + body;
+          this.trigger('error', 'Attachment not saved:' + body);
         }
-      });
-    });
+      }, this));
+    }, this));
 
     req.on('error', _.bind(this.trigger, this, 'error'));
 
