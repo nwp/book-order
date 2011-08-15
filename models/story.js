@@ -2,6 +2,7 @@ var Backbone   = require('backbone'),
     Attachment = require('./attachment'),
     _          = require('underscore')._,
     http       = require('http'),
+    https      = require('https'),
     fs         = require('fs');
 
 var ALWAYS_ADD_LABELS = ['new'];
@@ -67,9 +68,9 @@ var Story = module.exports = Backbone.Model.extend({
   save: function() {
     var storyXml = this.toXml();
     
-    var req = http.request({
+    var req = https.request({
       host:   'www.pivotaltracker.com',
-      port:   80,
+      port:   443,
       method: 'POST',
       path:   '/services/v3/projects/' + this.get('projectId') + '/stories',
       headers: {

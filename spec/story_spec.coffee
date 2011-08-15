@@ -1,5 +1,5 @@
 Story = require('../models/story.js')
-http  = require('http')
+https  = require('https')
 
 describe Story, ->
 
@@ -108,12 +108,12 @@ describe Story, ->
         onSpy    = jasmine.createSpy('on')
         writeSpy = jasmine.createSpy('write')
         endSpy   = jasmine.createSpy('end')
-        spyOn(http, 'request').andReturn({on: onSpy, write: writeSpy, end: endSpy})
+        spyOn(https, 'request').andReturn({on: onSpy, write: writeSpy, end: endSpy})
         story.save()
 
       it "sends a POST to the PT api", ->
-        expect(http.request).toHaveBeenCalled()
-        params = http.request.mostRecentCall.args[0]
+        expect(https.request).toHaveBeenCalled()
+        params = https.request.mostRecentCall.args[0]
         expect(params.path).toEqual('/services/v3/projects/123/stories')
         expect(params.headers['X-TrackerToken']).toEqual('abc')
         expect(onSpy).toHaveBeenCalled()

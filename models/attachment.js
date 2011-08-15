@@ -1,5 +1,6 @@
 var Backbone = require('backbone'),
-    http       = require('http');
+    http     = require('http'),
+    https    = require('https');
 
 var Attachment = module.exports = Backbone.Model.extend({
 
@@ -28,9 +29,9 @@ var Attachment = module.exports = Backbone.Model.extend({
                    "Content-Type: " + this.get('file').mime + "\r\n\r\n";
     var tailData = "\r\n--" + boundary + "--";
 
-    var req = http.request({
+    var req = https.request({
       host:   'www.pivotaltracker.com',
-      port:   80,
+      port:   443,
       method: 'POST',
       path:   '/services/v3/projects/' + this.projectId() + '/stories/' + this.storyId() + '/attachments',
       headers: {
