@@ -106,7 +106,7 @@ var Story = module.exports = Backbone.Model.extend({
         }
       } catch(e) {
         console.log('PT Response Body: ' + body);
-        this.trigger('error', new String(e));
+        this.trigger('error', new String(e) + "\n\n" + body);
       }
     }, this));
   },
