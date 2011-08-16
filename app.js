@@ -40,6 +40,7 @@ app.post('/projects/:project/stories/new/:token', function(request, response) {
         var notificationBody;
         try {
           notificationBody = "Sorry, there was an error processing mail.\n\n" +
+                             "from: " + request.body.from + "\n" +
                              "subject: " + request.body.subject + "\n" +
                              "body:\n" + request.body['stripped-text'] + "\n\n" +
                              new String(err);
