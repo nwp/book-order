@@ -20,6 +20,7 @@ var Story = module.exports = Backbone.Model.extend({
   // projectId
   // token
   // from
+  // fromName - set automatically from api
   // subject
   // body
   // type - inferred from subject
@@ -29,7 +30,7 @@ var Story = module.exports = Backbone.Model.extend({
   initialize: function(attributes) {
     this.setTypeFromSubject();
     this.setLabelsFromSubject();
-    _.bindAll(this, 'saveCallback', 'createAttachments', 'createAttachmentFromFile');
+    _.bindAll(this, 'saveCallback', 'createAttachments', 'createAttachmentFromFile', 'getUserNameFromXML');
   },
 
   setTypeFromSubject: function() {
@@ -53,37 +54,82 @@ var Story = module.exports = Backbone.Model.extend({
     this.set({labels: labels, subject: subject});
   },
   
-  fromName: function() {
-    return new String(this.get('from')).replace(/\s*<.*>/, '');
+  fromAddress: function() {
+    return new String(this.get('from')).match(/<([^>]+)>/)[1];
   },
   
   toXml: function() {
-    return '<story><name>' + escapeHTML(this.get('subject')) + '</name>' +
-           '<story_type>' + escapeHTML(this.get('type')) + '</story_type>' +
-           '<requested_by>' + escapeHTML(this.fromName()) + '</requested_by>' +
-           '<labels>' + escapeHTML(this.get('labels').join(', ')) + '</labels>' +
-           '<description>' + escapeHTML(this.get('body')) + '</description></story>';
+    return '<story><name>'  + escapeHTML(this.get('subject'))           + '</name>' +
+           '<story_type>'   + escapeHTML(this.get('type'))              + '</story_type>' +
+           '<requested_by>' + escapeHTML(this.get('fromName'))          + '</requested_by>' +
+           '<labels>'       + escapeHTML(this.get('labels').join(', ')) + '</labels>' +
+           '<description>'  + escapeHTML(this.get('body'))              + '</description></story>';
+  },
+
+  getUserNameFromEmail: function(email, cb) {
+    var req = https.request({
+      host:    'www.pivotaltracker.com',
+      port:    443,
+      method:  'GET',
+      path:    '/services/v3/projects/' + this.get('projectId') + '/memberships',
+      headers: {'X-TrackerToken': this.get('token')}
+    }, _.bind(function(res) {
+      res.setEncoding('utf8');
+      var body = '';
+
+      res.on('data', function(chunk) {
+        body += chunk;
+      });
+
+      res.on('end', _.bind(function() {
+        if(body.match(/<memberships/)) {
+          cb(this.getUserNameFromXML(body, email));
+        } else {
+          console.log(body);
+          this.trigger('error', body);
+        }
+      }, this));
+    }, this));
+    req.on('error', _.bind(this.trigger, this, 'error'));
+    req.end();
+  },
+
+  getUsersFromXML: function(xml) {
+    var re = /<email>([^<]+)<\/email>\s*<name>([^<]+)<\/name>/mg;
+    var match;
+    var emails = {};
+    while(match = re.exec(xml)) {
+      emails[match[1].toLowerCase()] = match[2];
+    }
+    return emails;
+  },
+
+  getUserNameFromXML: function(xml, email) {
+    return this.getUsersFromXML(xml)[email];
   },
 
   save: function() {
-    var storyXml = this.toXml();
-    
-    var req = https.request({
-      host:   'www.pivotaltracker.com',
-      port:   443,
-      method: 'POST',
-      path:   '/services/v3/projects/' + this.get('projectId') + '/stories',
-      headers: {
-        'X-TrackerToken': this.get('token'),
-        'Content-Type':   'application/xml',
-        'Content-Length': storyXml.length
-      }
-    }, this.saveCallback);
-    
-    req.on('error', _.bind(this.trigger, this, 'error'));
+    this.getUserNameFromEmail(this.fromAddress(), _.bind(function(name) {
+      this.set({fromName: name});
+      var storyXml = this.toXml();
+      
+      var req = https.request({
+        host:   'www.pivotaltracker.com',
+        port:   443,
+        method: 'POST',
+        path:   '/services/v3/projects/' + this.get('projectId') + '/stories',
+        headers: {
+          'X-TrackerToken': this.get('token'),
+          'Content-Type':   'application/xml',
+          'Content-Length': storyXml.length
+        }
+      }, this.saveCallback);
+      
+      req.on('error', _.bind(this.trigger, this, 'error'));
 
-    req.write(storyXml);
-    req.end();
+      req.write(storyXml);
+      req.end();
+    }, this));
   },
 
   saveCallback: function(res) {
