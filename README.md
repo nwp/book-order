@@ -2,7 +2,12 @@
 
 *Email to Pivotal Tracker Gateway*
 
-This project accepts incoming email routed via [Mailgun](http://mailgun.net) and creates a new Story in Pivotal Tracker via the API.
+This project accepts email
+
+* posted by [SendGrid](http://sendgrid.com)
+* routed via [Mailgun](http://mailgun.org)
+
+and creates a new Story in Pivotal Tracker via the API.
 
 ## Features
 
@@ -19,15 +24,18 @@ This project accepts incoming email routed via [Mailgun](http://mailgun.net) and
 
 ## Configuration
 
-First, create a new Route in Mailgun with a destination URL like this:
+For SendGrid you need to configure hostname and url address on the [Parse API settings page](http://sendgrid.com/developer/reply).
 
-    http://APPURL/projects/PROJECTID/stories/new/TOKEN
+For MailGun you need to create a new Route.
 
+This is destination url you need to use:
+
+    http://APPURL/EMAIL_GATEWAY/projects/PROJECTID/stories/new/TOKEN
+
+* Replace EMAIL_GATEWAY with one of these possible values: sendgrid, mailgun.
 * Replace APPURL with the url of your ap on Heroku or elsewhere.
 * Replace PROJECTID with the numeric project id from Pivotal Tracker (the id number in the URL when viewing the project).
 * Replace TOKEN with your user API token from Pivotal Tracker.
-
-Now, you can send email to you Mailgun routed email address, and new stories will be created.
 
 ## Setup
 
