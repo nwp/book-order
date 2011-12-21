@@ -19,18 +19,27 @@ app.get('/', function(request, response) {
   response.send('<html><head><title>Book Order</title></head><body>' + README + '</body></html>');
 });
 
-app.post('/projects/:project/stories/new/:token', function(request, response) {
+app.post('/:gateway/projects/:project/stories/new/:token', function(request, response) {
   try {
     var attachments = [];
-    for(var i=0; i<parseInt(request.body['attachment-count']); i++) {
-      attachments.push(request.body['attachment-' + (i+1)]);
+    
+    switch(request.params.gateway){
+    case 'sendgrid':
+      for(var i=1; i<=parseInt(request.body.attachments); i++)
+        attachments.push( request.body['attachment' + i]);
+      break;
+    case 'mailgun':
+      for(var i=1; i<=parseInt(request.body['attachment-count']); i++)
+        attachments.push(request.body['attachment-' + i]);
+      break;
     }
+        
     var story = new Story({
       projectId:   request.params.project,
       token:       request.params.token,
       from:        request.body.from,
       subject:     request.body.subject,
-      body:        request.body['stripped-text'],
+      body:        ( request.body['stripped-text'] || request.body['text'] ),
       attachments: attachments
     });
 
@@ -40,10 +49,10 @@ app.post('/projects/:project/stories/new/:token', function(request, response) {
         var notificationBody;
         try {
           notificationBody = "Sorry, there was an error processing mail.\n\n" +
-                             "from: " + request.body.from + "\n" +
-                             "subject: " + request.body.subject + "\n" +
-                             "body:\n" + request.body['stripped-text'] + "\n\n" +
-                             new String(err);
+                              "from: " + request.body.from + "\n" +
+                              "subject: " + request.body.subject + "\n" +
+                              "body:\n" + ( request.body['stripped-text'] || request.body['text'] ) + "\n\n" +
+                              new String(err);
         } catch(e) {
           notificationBody = "Sorry, there was an error processing mail.\n\n" + new String(e) + "\n\n" + new String(err);
         }
