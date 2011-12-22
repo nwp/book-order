@@ -165,7 +165,15 @@ var Story = module.exports = Backbone.Model.extend({
     var message = "Unfortunately, Book Order could not create new story for you due to following errors:\n\n- ";
     switch(response.statusCode.toString()){
     case '422':
+      var mapper = JSON.parse(fs.readFileSync('./pt_message_mapper.json','utf8'));
+      var message_patterns = Object.keys(mapper);
       var pivotalMessage = resBody.match(/<error>.*?<\/error>/g)[0].match(/<error>(.*)<\/error>/)[1];
+      
+      message_patterns.forEach(function(pattern){
+        if ( pivotalMessage.match(new RegExp(pattern)) )
+          pivotalMessage = mapper[pattern];
+      });
+      
       message += pivotalMessage;
       break;
     case '500': case '501': case '502': case '503': case '504': case '505':
@@ -174,7 +182,7 @@ var Story = module.exports = Backbone.Model.extend({
     default:
       message = "We are sorry, something went wrong and Book Order could not create new story for you.";
     } 
-    this.trigger('uncreated',message)
+    this.trigger('uncreated',message);    
   },
   
   createAttachments: function(cb) {
