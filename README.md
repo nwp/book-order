@@ -42,6 +42,7 @@ This is destination url you need to use:
 If you want notifications, be sure to set the following environment variables:
 
     STORY_NOTIFICATION_FROM
+    ERROR_NOTIFICATION_TO_SENDER (set it if you want user to be informed about not created stories)
     BUG_NOTIFICATION_TO
     BUG_NOTIFICATION_FROM
     SMTP_HOST
