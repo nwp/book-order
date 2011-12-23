@@ -171,6 +171,13 @@ describe Story, ->
       spyOn(fs, 'readFileSync').andCallFake (path) ->
         fs_readFileSync(__dirname  + '/files/pt_message_mapper.json', 'utf8')
 
+    it "triggers both methods: 'uncreated' and 'error'", ->
+      story.bind 'uncreated', (e) ->        
+        expect(e).toMatch(/Pivotal Tracker server error/)
+      story.bind 'error', (e) ->
+        expect(e).toMatch(/Response status: 500/)
+      story.handlePivotalError {statusCode: '500'}, ''
+
     it "triggers method 'uncreated' with proper error message when response status is 5xx", ->      
       story.bind 'uncreated', (err)->
         expect(err).toMatch(/Pivotal Tracker server error/)
