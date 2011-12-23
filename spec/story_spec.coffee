@@ -54,6 +54,16 @@ describe Story, ->
         from: 'John Doe <john.doe@foo.com>'
       expect(story.fromAddress()).toEqual 'john.doe@foo.com'
 
+  describe "ccAddress", ->
+    it "returns the name without the email address", ->
+      story = new Story
+        cc: 'John Doe <john.doe@foo.com>'
+      expect(story.ccAddress()).toEqual 'john.doe@foo.com'
+
+      story = new Story
+        cc: 'john.doe@foo.com'
+      expect(story.ccAddress()).toEqual 'john.doe@foo.com'
+
   describe "toXml", ->
     story = null
     beforeEach ->
@@ -61,6 +71,7 @@ describe Story, ->
         projectId: '123'
         token:     'abc'
         fromName:  'John Doe'
+        ccName:  'John Doe'
         subject:   'Test'
         body:      'test body'
 
@@ -70,6 +81,7 @@ describe Story, ->
         '<story><name>Test</name>' +
         '<story_type>feature</story_type>' +
         '<requested_by>John Doe</requested_by>' +
+        '<owned_by>John Doe</owned_by>' +
         '<labels>new</labels><description>test body</description></story>'
       )
 
@@ -136,6 +148,7 @@ describe Story, ->
         projectId: '123'
         token:     'abc'
         from:      'John Doe <john.doe@foo.com>'
+        cc:        'John Doe <john.doe@foo.com>'
         subject:   'Test'
         body:      'test body'
 
@@ -147,8 +160,8 @@ describe Story, ->
         writeSpy = jasmine.createSpy('write')
         endSpy   = jasmine.createSpy('end')
         spyOn(https, 'request').andReturn({on: onSpy, write: writeSpy, end: endSpy})
-        spyOn(story, 'getUserNameFromEmail').andCallFake (email, cb) ->
-          cb('John Doe')
+        spyOn(story, 'getUserNamesFromEmails').andCallFake (fromEmail,ccEmail, cb) ->
+          cb('John Doe','John Doe')
         story.save()
 
       it "sends a POST to the PT api", ->

@@ -21,6 +21,8 @@ var Story = module.exports = Backbone.Model.extend({
   // token
   // from
   // fromName - set automatically from api
+  // cc
+  // ccName - set automatically from api
   // subject
   // body
   // type - inferred from subject
@@ -58,15 +60,25 @@ var Story = module.exports = Backbone.Model.extend({
     return new String(this.get('from')).match(/<([^>]+)>/)[1];
   },
   
+  ccAddress: function() {
+    if (!this.get('cc')) 
+      return null;
+    if (this.get('cc').match(/.*?<.+?>/))
+      return new String(this.get('cc')).match(/<([^>]+)>/)[1];
+    else
+      return new String(this.get('cc'));
+  },
+  
   toXml: function() {
     return '<story><name>'  + escapeHTML(this.get('subject'))           + '</name>' +
            '<story_type>'   + escapeHTML(this.get('type'))              + '</story_type>' +
            '<requested_by>' + escapeHTML(this.get('fromName'))          + '</requested_by>' +
+           '<owned_by>'     + escapeHTML(this.get('ccName'))            + '</owned_by>' +
            '<labels>'       + escapeHTML(this.get('labels').join(', ')) + '</labels>' +
            '<description>'  + escapeHTML(this.get('body'))              + '</description></story>';
   },
 
-  getUserNameFromEmail: function(email, cb) {
+  getUserNamesFromEmails: function(fromEmail,ccEmail, cb) {
     var req = https.request({
       host:    'www.pivotaltracker.com',
       port:    443,
@@ -83,7 +95,9 @@ var Story = module.exports = Backbone.Model.extend({
 
       res.on('end', _.bind(function() {
         if(body.match(/<memberships/)) {
-          cb(this.getUserNameFromXML(body, email));
+          var fromName = this.getUserNameFromXML(body, fromEmail) || '',
+              ccName   = this.getUserNameFromXML(body, ccEmail) || '';
+          cb(fromName,ccName);
         } else {
           console.log(body);
           this.trigger('error', body);
@@ -109,8 +123,8 @@ var Story = module.exports = Backbone.Model.extend({
   },
 
   save: function() {
-    this.getUserNameFromEmail(this.fromAddress(), _.bind(function(name) {
-      this.set({fromName: name});
+    this.getUserNamesFromEmails(this.fromAddress(), this.ccAddress(), _.bind(function(fromName,ccName) {
+      this.set({fromName: fromName, ccName: ccName});
       var storyXml = this.toXml();
       
       var req = https.request({
