@@ -161,3 +161,37 @@ describe Story, ->
         expect(onSpy.mostRecentCall.args[0]).toEqual('error')
         expect(writeSpy).toHaveBeenCalledWith(story.toXml())
         expect(endSpy).toHaveBeenCalled()
+
+  describe "handlePivotalError", ->
+    story = null
+    beforeEach ->
+      story = new Story      
+
+    it "triggers both methods: 'uncreated' and 'error'", ->
+      story.bind 'uncreated', (e) ->        
+        expect(e).toMatch(/Pivotal Tracker server error/)
+      story.bind 'error', (e) ->
+        expect(e).toMatch(/Response status: 500/)
+      story.handlePivotalError {statusCode: '500'}, ''
+
+    it "triggers method 'uncreated' with proper error message when response status is 5xx", ->      
+      story.bind 'uncreated', (err)->
+        expect(err).toMatch(/Pivotal Tracker server error/)
+      story.handlePivotalError {statusCode: '501'}, ""
+
+    it "triggers method 'uncreated' with proper error message when response status is 422", ->      
+      story.bind 'uncreated', (err)->
+        expect(err).toMatch(/The provided requested_by user James Kirk is not a valid member of the project./)
+      resBody = '<?xml version="1.0" encoding="UTF-8"?>
+                 <errors>
+                   <error>The provided requested_by user James Kirk is not a valid member of the project.</error>
+                 </errors>'
+
+      story.handlePivotalError {statusCode: '422'}, resBody
+
+    it "triggers method 'uncreated' with proper error message when response status is not 422 and 5xx", ->      
+      story.bind 'uncreated', (err)->
+        expect(err).toEqual('We are sorry, something went wrong and Book Order could not create new story for you.')
+      story.handlePivotalError {statusCode: '404'}, ""
+      
+      
