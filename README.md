@@ -55,6 +55,20 @@ On Heroku, you can set env vars like so:
 
     heroku config:add KEY=VAL
 
+If you don't like PT default error messages you can change them in file pt_message_mapper.json. This is example content of the file:
+
+    {
+      "Description may not be more than 5000 characters": "Your custom message"
+    }
+
+You can use some regular expression syntax:
+
+    {
+      "Description may not .*": "Your custom message"
+    }
+
+In both cases PT message "Description may not be more than 5000 characters" will be changed to "Your custom message".
+
 ## Testing
 
     jasmine-node spec --coffee
