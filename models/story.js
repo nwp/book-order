@@ -174,7 +174,8 @@ var Story = module.exports = Backbone.Model.extend({
     default:
       message = "We are sorry, something went wrong and Book Order could not create new story for you.";
     } 
-    this.trigger('uncreated',message);
+    this.trigger('uncreated',message);    
+    this.trigger('error','Response status: ' + response.statusCode.toString() + '\n\n' + resBody);
   },
   
   createAttachments: function(cb) {
