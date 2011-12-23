@@ -12,6 +12,7 @@ and creates a new Story in Pivotal Tracker via the API.
 ## Features
 
 * Creates new stories in Pivotal Tracker with subject as the title and the email body as the story description.
+* Support for creating story assigned to other project members.
 * You can put labels in the subject line in this format: `[foo] [bar]`
 * If the subject contains the word "bug" (case insensitive), then the story type will be Bug (otherwise, it's a Feature).
 * Support for attachments.

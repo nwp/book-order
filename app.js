@@ -38,6 +38,7 @@ app.post('/:gateway/projects/:project/stories/new/:token', function(request, res
       projectId:   request.params.project,
       token:       request.params.token,
       from:        request.body.from,
+      cc:          (request.body.cc || request.body.Cc),
       subject:     request.body.subject,
       body:        ( request.body['stripped-text'] || request.body['text'] ),
       attachments: attachments
