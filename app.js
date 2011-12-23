@@ -63,7 +63,7 @@ app.post('/:gateway/projects/:project/stories/new/:token', function(request, res
         notification.send();
       }
     });
-
+        
     if(process.env.STORY_NOTIFICATION_FROM) {
       story.bind('done', function(url) {
         var notification = new Notification({
@@ -74,6 +74,18 @@ app.post('/:gateway/projects/:project/stories/new/:token', function(request, res
         });
         notification.send();
       });
+      
+      if(process.env.ERROR_NOTIFICATION_TO_SENDER) {
+        story.bind('uncreated', function(message) {
+          var notification = new Notification({
+            subject:     'PT Story Not Created',
+            body:        message,
+            from:        process.env.STORY_NOTIFICATION_FROM,
+            to:          story.get('from')
+          });
+          notification.send();
+        });
+      }
     }
 
     story.save();
