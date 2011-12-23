@@ -142,13 +142,17 @@ var Story = module.exports = Backbone.Model.extend({
 
     res.on('end', _.bind(function() {
       try {
-        var storyId = body.match(/<id.*?>(\d+)<\/id>/m)[1];
-        var storyUrl = body.match(/<url>([^<]+)<\/url>/m)[1];
-        this.set({id: storyId});
-        if(this.get('attachments').length > 0) {
-          this.createAttachments(_.bind(this.trigger, this, 'done', storyUrl));
-        } else {
-          this.trigger('done', storyUrl)
+        if (res.statusCode == "200") {
+          var storyId = body.match(/<id.*?>(\d+)<\/id>/m)[1];
+          var storyUrl = body.match(/<url>([^<]+)<\/url>/m)[1];
+          this.set({id: storyId});
+          if(this.get('attachments').length > 0) {
+            this.createAttachments(_.bind(this.trigger, this, 'done', storyUrl));
+          } else {
+            this.trigger('done', storyUrl)
+          }
+        }else {
+          this.handlePivotalError(res,body);
         }
       } catch(e) {
         console.log('PT Response Body: ' + body);
@@ -157,6 +161,31 @@ var Story = module.exports = Backbone.Model.extend({
     }, this));
   },
 
+  handlePivotalError: function(response,resBody) {
+    var message = "Unfortunately, Book Order could not create new story for you due to following errors:\n\n- ";
+    switch(response.statusCode.toString()){
+    case '422':
+      var mapper = JSON.parse(fs.readFileSync('./pt_message_mapper.json','utf8'));
+      var message_patterns = Object.keys(mapper);
+      var pivotalMessage = resBody.match(/<error>.*?<\/error>/g)[0].match(/<error>(.*)<\/error>/)[1];
+      
+      message_patterns.forEach(function(pattern){
+        if ( pivotalMessage.match(new RegExp(pattern)) )
+          pivotalMessage = mapper[pattern];
+      });
+      
+      message += pivotalMessage;
+      break;
+    case '500': case '501': case '502': case '503': case '504': case '505':
+      message += "Pivotal Tracker server error.";
+      break;
+    default:
+      message = "We are sorry, something went wrong and Book Order could not create new story for you.";
+    } 
+    this.trigger('uncreated',message);    
+    this.trigger('error','Response status: ' + response.statusCode.toString() + '\n\n' + resBody);
+  },
+  
   createAttachments: function(cb) {
     var count = this.get('attachments').length;
     _.each(this.get('attachments'), function(file) {

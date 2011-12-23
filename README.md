@@ -42,6 +42,7 @@ This is destination url you need to use:
 If you want notifications, be sure to set the following environment variables:
 
     STORY_NOTIFICATION_FROM
+    ERROR_NOTIFICATION_TO_SENDER (set it if you want user to be informed about not created stories)
     BUG_NOTIFICATION_TO
     BUG_NOTIFICATION_FROM
     SMTP_HOST
@@ -53,6 +54,20 @@ If you want notifications, be sure to set the following environment variables:
 On Heroku, you can set env vars like so:
 
     heroku config:add KEY=VAL
+
+If you don't like PT default error messages you can change them in file pt_message_mapper.json. This is example content of the file:
+
+    {
+      "Description may not be more than 5000 characters": "Your custom message"
+    }
+
+You can use some regular expression syntax:
+
+    {
+      "Description may not .*": "Your custom message"
+    }
+
+In both cases PT message "Description may not be more than 5000 characters" will be changed to "Your custom message".
 
 ## Testing
 

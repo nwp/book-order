@@ -1,0 +1,4 @@
+{
+  "^An example .*$": "Book Order own message 1",
+  "You can't do this": "Book Order own message 2"
+}
