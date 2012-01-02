@@ -22,6 +22,7 @@ var Story = module.exports = Backbone.Model.extend({
   // from
   // fromName - set automatically from api
   // subject
+  // name
   // body
   // type - inferred from subject
   // labels - auto extracted from subject if empty
@@ -30,6 +31,7 @@ var Story = module.exports = Backbone.Model.extend({
   initialize: function(attributes) {
     this.setTypeFromSubject();
     this.setLabelsFromSubject();
+    this.setNameFromSubject();
     _.bindAll(this, 'saveCallback', 'createAttachments', 'createAttachmentFromFile', 'getUserNameFromXML');
   },
 
@@ -54,12 +56,17 @@ var Story = module.exports = Backbone.Model.extend({
     this.set({labels: labels, subject: subject});
   },
   
+  setNameFromSubject: function() {
+    var name = this.get('subject').replace(/RE:|FWD:|FW:/gi,'').trim();
+    this.set({name: name});
+  },
+  
   fromAddress: function() {
     return new String(this.get('from')).match(/<([^>]+)>/)[1];
   },
   
   toXml: function() {
-    return '<story><name>'  + escapeHTML(this.get('subject'))           + '</name>' +
+    return '<story><name>'  + escapeHTML(this.get('name'))              + '</name>' +
            '<story_type>'   + escapeHTML(this.get('type'))              + '</story_type>' +
            '<requested_by>' + escapeHTML(this.get('fromName'))          + '</requested_by>' +
            '<labels>'       + escapeHTML(this.get('labels').join(', ')) + '</labels>' +
@@ -106,7 +113,7 @@ var Story = module.exports = Backbone.Model.extend({
 
   getUserNameFromXML: function(xml, email) {
     return this.getUsersFromXML(xml)[email];
-  },
+  },    
 
   save: function() {
     this.getUserNameFromEmail(this.fromAddress(), _.bind(function(name) {
