@@ -48,6 +48,63 @@ describe Story, ->
       story.setLabelsFromSubject()
       expect(story.get('subject')).toEqual('A Feature')
 
+  describe "setNameFromSubject", ->
+    it "sets name without prefix RE:", ->
+      story = new Story
+        subject: 'RE: A feature'
+      story.setNameFromSubject()
+      expect(story.get('name')).toEqual('A feature')
+
+      story = new Story
+        subject: 'Re: A feature'
+      story.setNameFromSubject()
+      expect(story.get('name')).toEqual('A feature')
+
+    it "sets name without prefix FW:", ->
+      story = new Story
+        subject: 'FW: A feature'
+      story.setNameFromSubject()
+      expect(story.get('name')).toEqual('A feature')
+
+      story = new Story
+        subject: 'Fw: A feature'
+      story.setNameFromSubject()
+      expect(story.get('name')).toEqual('A feature')   
+
+    it "sets name without prefix FWD:", ->
+      story = new Story
+        subject: 'FWD: A feature'
+      story.setNameFromSubject()
+      expect(story.get('name')).toEqual('A feature')
+
+      story = new Story
+        subject: 'Fwd: A feature'
+      story.setNameFromSubject()
+      expect(story.get('name')).toEqual('A feature')
+
+    it "sets name without prefix 'Fwd: FW:'", ->
+      story = new Story
+        subject: 'Fwd: FW: A feature'
+      story.setNameFromSubject()
+      expect(story.get('name')).toEqual('A feature')
+
+      story = new Story
+        subject: 'Fwd: A feature'
+      story.setNameFromSubject()
+      expect(story.get('name')).toEqual('A feature')
+
+    it "sets proper name when subject begins with prefix 'Re'", ->
+      story = new Story
+        subject: 'Reaction to this post'
+      story.setNameFromSubject()
+      expect(story.get('name')).toEqual('Reaction to this post')
+
+    it "trims name string from white space at the front and end", ->
+      story = new Story
+        subject: ' A feature '
+      story.setNameFromSubject()
+      expect(story.get('name')).toEqual('A feature')  
+
   describe "fromAddress", ->
     it "returns the name without the email address", ->
       story = new Story
@@ -74,7 +131,7 @@ describe Story, ->
       )
 
     it "escapes the name field value", ->
-      story.set
+      story = new Story
         subject: 'Foo <Bar>'
       xml = story.toXml()
       expect(xml).toMatch(/<name>Foo &lt;Bar&gt;<\/name>/);
